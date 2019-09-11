@@ -60,7 +60,7 @@ name_list=get_registry_name_list()
 
 # 元数据目录
 metadataDirPrefix=registry_dir + "repositories/"
-#数据目录
+# 层数据目录
 dataDir=registry_dir + "blobs/sha256"
 
 if __name__ == '__main__':
@@ -107,7 +107,7 @@ if __name__ == '__main__':
                 # 使用DELETE API没有删掉_revisions下的历史版本的目录,手动删除下,此脚本tags/index下的目录未删除
                 del_reference_res=ssh.ssh("rm -rf %s/{%s}" % (revisions_dir,del_reference_str))
 
-    # 使用DELETE API只是删除了元数据,实际的数据(dataDir下的数据)还保留着,
+    # 使用DELETE API只是删除了元数据,实际的数据(层数据)并没有删除,要执行垃圾回收
     # 执行下面的命令真正释放空间:registry garbage-collect /etc/docker/registry/config.yml
     cmd="docker exec registry-srv registry garbage-collect /etc/docker/registry/config.yml"
     clean_res=ssh.ssh(cmd)

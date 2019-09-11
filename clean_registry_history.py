@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 #Authot:Zhang Yan
-# github地址:https://github.com/meitangyanyan/my-python-tools.git
+# python2/3
 
 import urllib2,json,sys
 from ssh_paramiko import SSH
@@ -37,7 +37,7 @@ def get_registry_tag_list(name):
     response = urllib2.urlopen(request)
 
     result = json.loads(response.read())
-    print result
+    print(result)
     return result["tags"]
 
 #API: DELETE /v2/<name>/manifests/<reference>  删除指定仓库里的指定digest
@@ -50,8 +50,8 @@ def delete_registry(reference):
     request.get_method = lambda: 'DELETE'
     try:
         urllib2.urlopen(request)
-    except urllib2.URLError, err:
-        print err
+    except urllib2.URLError as err:
+        print(err)
 
 
 
@@ -95,8 +95,8 @@ if __name__ == '__main__':
                             del_reference_list=del_res["msg"].strip().split("\n")
                         else:
                             sys.exit(del_res["msg"])
-                        print name
-                        print del_reference_list
+                        print(name)
+                        print(del_reference_list)
                 else:
                     sys.exit(del_res_exsit["msg"])
 
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     cmd="docker exec registry-srv registry garbage-collect /etc/docker/registry/config.yml"
     clean_res=ssh.ssh(cmd)
     if clean_res["status"] == "1":
-        print "sucessful"
+        print("sucessful")
 
 
 

@@ -1,7 +1,7 @@
 #/usr/bin/env python
 #-*- coding:utf-8 -*-
 #Authot:Zhang Yan
-#python3.x
+#python2/3
 
 class SSH:
     def __init__(self,ip,port,user,passwd="",ssh_key=""):

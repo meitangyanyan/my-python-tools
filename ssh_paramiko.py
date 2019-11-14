@@ -18,9 +18,10 @@ class SSH:
             self.client.connect(hostname=ip, port=port, username=user, password=passwd, timeout=10)
     def ssh(self,cmd):
         run_msg={"status":"0","msg":""}  #"1"是成功  "0"是失败
-        cmd="%s &> /tmp/cmdresult.txt ; echo $? >> /tmp/cmdresult.txt" % cmd
-        # paramiko执行完之后有时候无法准确返回执行结果,所以将执行结果和$?的值都保存在文件中,通过$?来判断命令是否执行成功
-        print("[INFO] 执行命令: %s" % cmd)
+        cmd='''%s ; echo -e '\n'$?''' % cmd
+        # paramiko执行完之后有时候无法准确返回执行结果,所以通过$?来判断是否命令真的执行成功,使用echo -e '\n'这个是防止有些命令执行完之后不换行,
+        # 所以在echo $?的时候加个换行
+        print("[INFO] 执行命令: %s" % cmd.split(";")[:-1])
         stdin, stdout, stderr = self.client.exec_command(cmd)
         if self.passwd != "":
             stdin.write("%s\n" % (self.passwd))  # 这两行是执行sudo命令要求输入密码时需要的
@@ -30,7 +31,6 @@ class SSH:
         err = stderr.read().decode()
         if err != "":
             print("[ERROR] %s" % err)
-        stdin, stdout, stderr = self.client.exec_command("cat /tmp/cmdresult.txt")
         out=stdout.read().decode().strip()
         status=out[-1]
         res=out[:-1]

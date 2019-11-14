@@ -3,11 +3,11 @@
 #Authot:Zhang Yan
 # python2/3
 
-import urllib2,json,sys
+import urllib2,json,sys,datetime,os
 from ssh_paramiko import SSH
 
 #仓库目录
-registry_dir="/data/registry/docker/registry/v2/"
+registry_dir="/data/apps/registry/docker/registry/v2"
 #仓库地址url
 registry_url="http://192.168.30.60:1179"
 #仓库机器,在仓库机器上执行一些操作
@@ -53,7 +53,22 @@ def delete_registry(reference):
     except urllib2.URLError as err:
         print(err)
 
+def _now(format="%Y-%m-%d %H:%M:%S"):
+    return datetime.datetime.now().strftime(format)
 
+##### 可在脚本开始运行时调用，打印当时的时间戳及PID。
+def job_start():
+    print "[%s][PID:%s] job_start" % (_now(), os.getpid())
+
+##### 可在脚本执行成功的逻辑分支处调用，打印当时的时间戳及PID。
+def job_success(msg):
+    print "[%s][PID:%s] job_success:[%s]" % (_now(), os.getpid(), msg)
+    sys.exit(0)
+
+##### 可在脚本执行失败的逻辑分支处调用，打印当时的时间戳及PID。
+def job_fail(msg):
+    print "[%s][PID:%s] job_fail:[%s]" % (_now(), os.getpid(), msg)
+    sys.exit(1)
 
 name_list=get_registry_name_list()
 #tag=get_registry_tag_list("huikedu/kkb/kkb-qrcode-console")
@@ -64,6 +79,7 @@ metadataDirPrefix=registry_dir + "repositories/"
 dataDir=registry_dir + "blobs/sha256"
 
 if __name__ == '__main__':
+    job_start()
     if name_list:
         for name in name_list:
             tag_list=get_registry_tag_list(name)
@@ -83,7 +99,7 @@ if __name__ == '__main__':
                         current_reference=current_res["msg"].split(":")[1]
                         current_reference_list.append(current_reference)
                     else:
-                        sys.exit(current_res["msg"])
+                        job_fail(current_res["msg"])
                 current_reference_str="|".join(current_reference_list)
                 revisions_dir=metadataDirPrefix + name + "/_manifests/revisions/sha256"
                 # 在_revisions目录中,除了该仓库下所有tag的current版本就是历史版本,所以用grep -vE
@@ -94,11 +110,11 @@ if __name__ == '__main__':
                         if del_res["status"] == "1":
                             del_reference_list=del_res["msg"].strip().split("\n")
                         else:
-                            sys.exit(del_res["msg"])
+                            job_fail(del_res["msg"])
                         print(name)
                         print(del_reference_list)
                 else:
-                    sys.exit(del_res_exsit["msg"])
+                    job_fail(del_res_exsit["msg"])
 
             if del_reference_list:
                 for del_reference in del_reference_list:
@@ -112,7 +128,9 @@ if __name__ == '__main__':
     cmd="docker exec registry-srv registry garbage-collect /etc/docker/registry/config.yml"
     clean_res=ssh.ssh(cmd)
     if clean_res["status"] == "1":
-        print("sucessful")
+        job_success("successful")
+    else:
+        job_fail(clean_res["msg"])
 
 
 
